@@ -10,9 +10,12 @@ while(True):
     print("caps", sensor.get_capabilities())
 
     if(sensor.has_capability('accelerometer')):
-        print(sensor.get_value('accelerometer'))
-        acc_x = float(sensor.get_value('accelerometer')['x'])
-        print(acc_x)
+        print("acc", sensor.get_value('accelerometer'))
+        # acc_x = float(sensor.get_value('accelerometer')['x'])
+        # print(acc_x)
+    
+    if(sensor.has_capability('button_1')):
+        print("b_1", sensor.get_value('button_1'))
 
     sleep(1)
 

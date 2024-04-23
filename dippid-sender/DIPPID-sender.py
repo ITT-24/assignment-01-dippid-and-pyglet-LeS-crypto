@@ -2,6 +2,7 @@ import socket
 import time 
 import numpy as np
 import json
+from datetime import datetime
 
 IP = '127.0.0.1'
 PORT = 5700
@@ -34,13 +35,20 @@ class Accelerometer(Capabilities):
                 "y": self._simulate_axis(axis="y"),
                 "z": self._simulate_axis(axis="z"),
                 }
-        # data = json.dumps(data) # works
         return super()._simulate_data(data)
     
-    def _simulate_axis(self, axis:str) -> str:
-        # TODO
-        axis_data = "0"
-        return axis_data
+    def _simulate_axis(self, axis:str):
+        """sine functions with diff. frequencies"""
+        frequencies = {"x": 37, "y": 501, "z": 1250}
+
+        rand = np.random.randint(100)
+        if rand < 70: # simulate rest
+            now = datetime.now().minute 
+        else: now = datetime.now().second
+
+        # x = np.linspace(-np.pi, np.pi, 10)
+        sine = np.sin(now * frequencies[axis])
+        return sine
 
 
 class Button(Capabilities):
@@ -48,11 +56,12 @@ class Button(Capabilities):
         self.name = name
         super().__init__(name=name)
     
-    def _simulate_data(self, data=None):
-        # data = {self.name: "clicked"}
-        data = "clicked"
-        # data = json.dumps(data)
-        return super()._simulate_data(data)
+    def _simulate_data(self):
+        rand = np.random.randint(100)
+        click = 0 # button released
+        if rand > 50: 
+            click = 1  # button pressed
+        return super()._simulate_data(data=click)
 
 
 def create_simulated_data() -> str:
@@ -65,6 +74,7 @@ def create_simulated_data() -> str:
     } 
 
     return json.dumps(data)
+
 
 # ----- SEND-LOOP ----- #
 
