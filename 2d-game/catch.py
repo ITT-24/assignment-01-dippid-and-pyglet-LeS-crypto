@@ -1,11 +1,17 @@
+from DIPPID import SensorUDP
 import pyglet
 from pyglet import shapes, clock
 import random
+
+PORT = 5700
+sensor = SensorUDP(PORT)
 
 WIDTH = 400
 HEIGHT = 400
 window = pyglet.window.Window(WIDTH, HEIGHT)
 # batch = pyglet.graphics.Batch()
+
+movement_speed = 10
 
 # ----- GAME ELEMENTS ----- #
 PLAYER_WIDTH = 100
@@ -27,17 +33,6 @@ class Target():
     
     def draw(self):
         self.shape.draw()
-
-    # def __init__(self, x, y, radius):
-    #     self.x = x
-    #     self.y = y
-    #     self.radius = radius
-    #     self.color = (0, 255, 130)
-    #     self.shape = shapes.Circle(x=self.x, y=self.y,
-    #                                radius=self.radius, 
-    #                                color=self.color)
-    #     #...
-    # doesn't work with update 
 
     def create_target(delta_time):
         radius = random.randint(5, 15)
@@ -81,6 +76,8 @@ class Target():
                     # update Score
                     Target.count += 1
                     score.text=f"Score: {Target.count}"
+        
+        # NOTE: check rotation of implemented
 
     def check_bounds_old(target):
         # make 'em disappear if out of y_bottom_bounds
@@ -100,6 +97,17 @@ class Target():
         # collision works, but a little laggy
         # only works for center of circle => TODO
 
+# direction + = left , - = right
+def move_in_bounds(player, new_pos):
+    """move the player, but only inside the window bounds"""
+    if player.x <= 10 and new_pos < 0: # & keep moveing left
+        player.x = 0
+        print("at left border w/", player.x)
+    elif (player.x + PLAYER_WIDTH) >= WIDTH and new_pos > 0:
+        player.x = WIDTH - PLAYER_WIDTH
+        print("at right border w/", player.x)
+    else:
+        player.x += new_pos
 
 # ----- GAME LOOPS ----- # 
 @window.event
@@ -109,6 +117,17 @@ def on_draw():
     score.draw()
     player.draw()
     Target.draw_targets()
+
+    # Move rect with sensors
+    if(sensor.has_capability('accelerometer')):
+        acc_x = float(sensor.get_value('accelerometer')['x'])
+        print(acc_x) # NOTE: +acc_x = left, -acc_x = right
+
+        movement = 10*acc_x
+
+        # only move when acc is hight enough
+        if acc_x >= 0.05 or acc_x <= 0.05:
+            move_in_bounds(player, movement)
 
 
 
@@ -123,9 +142,15 @@ def on_key_press(symbol, modifiers):
         window.close()
     # addition keybinds for optional keyboard usage/debug
     elif symbol == pyglet.window.key.LEFT:
-        player.x -= 20
+        move_in_bounds(player, -movement_speed)         
     elif symbol == pyglet.window.key.RIGHT:
-        player.x += 20
+        move_in_bounds(player, movement_speed)
+
+    # TODO:
+    elif symbol == pyglet.window.key.UP:
+        player.rotation += 20
+    elif symbol == pyglet.window.key.DOWN:
+        player.rotation -= 20
 
 # ----- RUN GAME ----- #
 
