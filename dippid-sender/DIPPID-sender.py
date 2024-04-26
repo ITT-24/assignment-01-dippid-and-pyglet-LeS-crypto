@@ -9,11 +9,6 @@ PORT = 5700
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-# TODO: simulate input device by sending to a DIPPID receiver via UDP to localhost
-    # min. two capabilities: accelerometer, button_1
-    # Implement plausible behaviour for simulated sensors
-        # e.g. sine functions with diff frequencies for each axis of acc
-
 # ----- PARENT ----- #
 class Capabilities:
     def __init__(self, name:str):
@@ -46,7 +41,6 @@ class Accelerometer(Capabilities):
             now = datetime.now().minute 
         else: now = datetime.now().second
 
-        # x = np.linspace(-np.pi, np.pi, 10)
         sine = np.sin(now * frequencies[axis])
         return sine
 
@@ -84,20 +78,17 @@ while True:
     
     sim_data = create_simulated_data()
     print("sim_data", sim_data)
-    
-    # message = '{"accelerometer": {"x": "0"} }' # works
-    # message = '{"accelerometer": {"x": "0", "y": "0", "z": "0"} }' # works
-    # print("nnot_sim", message)
 
     sock.sendto(sim_data.encode(), (IP, PORT))
 
     counter += 1
     time.sleep(1)
 
-# https://robotics.stackexchange.com/q/10233
-# https://stackoverflow.com/q/3921467
-
 """
+data-syntax:
+message = '{"accelerometer": {"x": "0"} }' # works
+message = '{"accelerometer": {"x": "0", "y": "0", "z": "0"} }' # works
+i.e:
 { 'accelerometer' : {
     'x': {...},
     'y': {...},
