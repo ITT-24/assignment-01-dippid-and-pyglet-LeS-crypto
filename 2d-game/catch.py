@@ -27,67 +27,81 @@ PLAYER_HEIGHT = 10
 PLAYER_Y = 50
 player = shapes.Rectangle(150, PLAYER_Y, 
                           PLAYER_WIDTH, PLAYER_HEIGHT, 
-                          (0, 0, 255))
+                          (144, 183, 255))
 
 score = pyglet.text.Label(text="Score: 0", x=10, y=380)
 
-class Target():
-    targets = []
+class Score_Object():
     count = 0
 
-    def draw_targets():
-        for target in Target.targets:
-            target.draw()
+    def __init__(self, color=(0, 255, 0), is_friend = True):
+        self.color = color
+        self.objects = []
+        self.friend = is_friend
+
+    def draw_objects(self):
+        for obj in self.objects:
+            obj.draw()
     
     def draw(self):
         self.shape.draw()
 
-    def create_target(delta_time):
+    def create_object(self, x):
         radius = random.randint(5, 15)
         x = random.randint(0, window.width - radius)
         y = window.height + radius + 5 # drop from outside
-        circle = shapes.Circle(x, y, radius, color=(0, 255, 0))
-        Target.targets.append(circle)
+        circle = shapes.Circle(x, y, radius, color=self.color)
+        self.objects.append(circle)
 
-    def update_targets(delta_time):
-        for target in Target.targets:
-            Target.check_bounds(target)
-            Target.update_single(target)
+    def update_objects(self, x):
+        for obj in self.objects:
+            self.check_bounds(obj)
+            self.update_single(obj)
 
-    def update_single(target): # make 'em fall!
-       target.y -= 10
-        # ASK: speed up when time progresses
+    def update_single(self, obj): # make 'em fall!
+       obj.y -= 10
 
-    def check_bounds(target):
-        # only works for center of circle 
-        
+    def check_bounds(self, obj):  # only works for center of circle 
         player_max_x = player.x + player.width
         player_max_y = player.y + PLAYER_HEIGHT
 
-        # only check collision, if circle at bottom of screen
-        if target.y <= player_max_y:
+        # only check collision, if circle at/lower player height
+        if obj.y <= player_max_y:
 
             # make 'em disappear if out of y_bottom_bounds
-            min_y = 0 - target.radius
-            if target.y < min_y:
-                Target.targets.remove(target)
+            min_y = 0 - obj.radius
+            if obj.y < min_y:
+                self.objects.remove(obj)
                 # print("rm target")
 
-             # make 'em disappear if collision with player
-            if target.y >= PLAYER_Y: # and  target.y <= player_max_y:
-                if target.x >= player.x and target.x <= player_max_x:
-                    Target.targets.remove(target)
+            # make 'em disappear if collision with player
+            if obj.y >= PLAYER_Y: # and  target.y <= player_max_y:
+                if obj.x >= player.x and obj.x <= player_max_x:
+                    self.objects.remove(obj)
                     
                     # update Score
-                    Target.count += 1
-                    score.text=f"Score: {Target.count}"
+                    if self.friend:
+                        Score_Object.count += 1
+                    else: Score_Object.count -= 1
+                    score.text=f"Score: {Score_Object.count}"
+
+class Target(Score_Object):
+    def __init__(self, color=(0, 255, 0)):
+        super().__init__(color)
+
+class Enemy(Score_Object):
+    def __init__(self, color=(255, 0, 0)):
+        super().__init__(color, is_friend=False)
+
+target = Target()
+enemy = Enemy()
 
 # ----- HELPER ----- #
 
 # direction + = left , - = right
 def move_in_bounds(player, new_pos):
     """move the player, but only inside the window bounds"""
-    if player.x <= 10 and new_pos > 0: # & keep moveing left
+    if player.x <= 10 and new_pos > 0: # & if keep moveing left
         player.x = 0
         print("at left border w/", player.x)
     elif (player.x + player.width) >= WIDTH and new_pos < 0:
@@ -97,13 +111,15 @@ def move_in_bounds(player, new_pos):
         player.x -= new_pos
 
 # ----- GAME LOOPS ----- # 
+
 @window.event
 def on_draw():
     window.clear()
 
     score.draw()
     player.draw()
-    Target.draw_targets()
+    target.draw_objects()
+    enemy.draw_objects()
 
     # Move rect with sensors
     if(sensor.has_capability('accelerometer')):
@@ -126,14 +142,13 @@ def on_draw():
             # tilt forward = smaller
             player.width -= 2
             player.x += 1
-        # print("sensor movement", acc_z)
 
-
-# idee: größe verändern um Gegners auszuweichen
-
-clock.schedule_interval(Target.create_target, 1)
 # ASK: gradually increase create_target intervall from 1 to 0.01 the longer the game runs
-clock.schedule_interval(Target.update_targets, 0.1)
+clock.schedule_interval(target.create_object, 1)
+clock.schedule_interval(target.update_objects, 0.1)
+
+clock.schedule_interval(enemy.create_object, 2.5)
+clock.schedule_interval(enemy.update_objects, 0.1)
 
 
 @window.event
