@@ -11,8 +11,11 @@ py DIPPID-sender.py
 # 2nd terminal
 py demo_receiver.py
 ```
+- uses sine function + current time for accelerometer
+- uses a randint for 'button_1'
 
 ## 02 2D-Game
+file: `catch.py`
 - Catch green balls.
 - Avoid red balls.
 - Tilt/Move device left or right to move rectangle
