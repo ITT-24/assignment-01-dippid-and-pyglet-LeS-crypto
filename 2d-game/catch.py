@@ -20,7 +20,7 @@ if sensor.has_capability('accelerometer'):
 
 
 # ----- GAME ELEMENTS ----- #
-PLAYER_WIDTH = 100
+PLAYER_WIDTH = 50
 PLAYER_MAX_WIDTH = 250
 PLAYER_MIN_WIDTH = 50
 PLAYER_HEIGHT = 10
@@ -82,7 +82,7 @@ class Score_Object():
                     # update Score
                     if self.friend:
                         Score_Object.count += 1
-                    else: Score_Object.count -= 1
+                    else: Score_Object.count -= 10
                     score.text=f"Score: {Score_Object.count}"
 
 class Target(Score_Object):
